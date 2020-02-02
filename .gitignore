@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# directories
+smali/
+apk/
+data/
+xml/
