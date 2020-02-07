@@ -1,0 +1,4 @@
+{
+    "smali_src": "./smali",
+    "test_size": 500
+}
