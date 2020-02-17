@@ -1,5 +1,7 @@
 # Malware Detection Replication on Hindroid
 
+Jeff Liao, zjliao@ucsd.edu, A13438127
+
 ## Part 1 - The Issue
 
 ### Introduction
@@ -85,27 +87,67 @@ In this project, we will analyze the smali code using a heterogeneous informatio
 
 There are 4 types of graphs that are constructed.
 
-**Graph A**: This graph documents which APIs are connected to which AOKs. So we have columns of APIs and rows of APKs.
+**Graph A**: This graph documents which APIs are connected to which AOKs. So we have columns of APIs and rows of APKs.  
+
+*How to Construct:*  
+We need three things to help us construct a complete adjacency matrix for A. We cannot directly call the adjacency_matrix function from networkx because we want APK x API, but the function will return (APK + API) x (APK + API). So, to get around this, we need a series for APK and a series for API. We will also need a dictionary to store the relationship between each APK and API.  
+
+- Get a series of unique APKs. A series gives us a perfect mapping because the index is unique.
+- Get a series of unique APIs. This series also gives us a perfect mapping.
+- Get a dictionary of relationships. This dictionary looks like: {APK1: [APIs], APK2: [APIs], ...}
+- Creating the adjacency matrix is the tricky part. To create the matrix, create a 2D list and use numpy to transform the 2D list to a matrix.
 
 **Graph B**: This graph connects APIs together if they are within the same code block. A code block in the smali code are code that are in between ".method" and ".end method."
 
+*How to Construct:*  
+
+- Create a networkx graph
+- For each samli file, locate code blocks
+- For each code block find the APIs that are in them
+- Create a dictionary that keeps track of the relationships. e.g. {block1: \[APIs]}
+- Using this relationship dictionary, add edges into the graph mentioned above
+
 **Graph I**: Each API has an invokation method. There are a total of 5 different invokation methods [2]:  
-(1) invoke-static: invokes a static method with
-parameters  
-(2) invoke-virtual: invokes a virtual method with
-parameters  
-(3) invoke-direct: invokes a method with parameters
-without the virtual method resolution  
-(4) invoke-super: invokes the virtual method of the immediate parent class  
-(5) invoke-interface: invokes an interface method
+
+1. invoke-static: invokes a static method with parameters
+2. invoke-virtual: invokes a virtual method with parameters
+3. invoke-direct: invokes a method with parameters without the virtual method resolution
+4. invoke-super: invokes the virtual method of the immediate parent class  
+5. invoke-interface: invokes an interface method
+
+*How to Construct:*  
+
+- Create a networkx graph
+- For each samli file, locate API calls
+- For each API call, extract the invokation method
+- Create a dictionary that keeps track of the relationships. {method: \[APIs]}
+- Using this relationship dictionary, add edges into the graph mentioned above
 
 **Graph P**: This graph connects APIs together if they have the same package.
+For example, 
+
+*How to Construct:*  
+
+- Create a networkx graph
+- For each samli file, locate API calls
+- For each API call, extract the package
+- Create a dictionary that keeps track of the relationships. {package: \[APIs]}
+- Using this relationship dictionary, add edges into the graph mentioned above
 
 ## Part 4 - EDA on Apps
 
+Currently, I have 50 apps downloaded and converted into smali code. Of these 50 apps, there are a total of 60503 unique APIs.
 
+For 50 apps, there are 4404 smali files per app on average, and 75% of the apps have below 6061 smali files per app.  
+![Number of Smali files in app](./src/images/numSmali_per_app.png)
 
-Reference
+With an inital look at the counts of APIS for one app, the API with the most count is "java/lang/Object;->\<init>()V," which has 5242 appearances. The most common class is "java/lang/Object" which has 6403 appearances. This is a valid observation because as the official Java documentation states, "every class has Object as a superclass."
+
+Here we take a look at how an app looks like. The nodes in the image below are classes. The edges are relationships between a class and its superclass.
+![Candy Crush](./src/images/candy_crush_relations.png)
+From this descriptive image, we can see that there is a class that has a ton of connections, and this would be the Object class.
+
+## Reference
 
 - [1] <https://gs.statcounter.com/os-market-share/mobile/worldwide>
 - [2] hindroid
