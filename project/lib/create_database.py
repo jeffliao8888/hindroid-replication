@@ -94,6 +94,7 @@ def get_data(number_of_apps, **kwargs):
     apps = [a.text for a in site.find_all('loc')][5:]
     random.shuffle(apps)
     count = 0
+    check_dir('./data')
     for app in apps:
         if(count >= number_of_apps):
             break
