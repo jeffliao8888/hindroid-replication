@@ -1,4 +1,6 @@
 {
-    "smali_src": "./data/smali",
-    "number_of_apps": 5
+    "benign_src": "/datasets/dsc180a-wi20-public/Malware/testing/benign",
+    "mal_src": "/datasets/dsc180a-wi20-public/Malware/testing/malware",
+    "num_b": 5,
+    "num_m": 5
 }
