@@ -134,7 +134,7 @@ For example,
 - Create a dictionary that keeps track of the relationships. {package: \[APIs]}
 - Using this relationship dictionary, add edges into the graph mentioned above
 
-## Part 4 - EDA on Apps
+## Part 4 - EDA on Apps and Inital Small Scale Classification Trial
 
 Currently, I have 50 apps downloaded and converted into smali code. Of these 50 apps, there are a total of 60503 unique APIs.
 
@@ -146,6 +146,10 @@ With an inital look at the counts of APIS for one app, the API with the most cou
 Here we take a look at how an app looks like. The nodes in the image below are classes. The edges are relationships between a class and its superclass.
 ![Candy Crush](./src/images/candy_crush_relations.png)
 From this descriptive image, we can see that there is a class that has a ton of connections, and this would be the Object class.
+
+For the classification trial stage, I used only a total dataset of 9 apps, 5 benign and 4 malware. The small dataset is mostly for testing whether the code works properly. 1 benign and 1 malware was held out as the test set. This inital trial also only constructed to A graph and used SVM from sklearn. One interesting characteristic of from the dataset was that the first column was all 1 for the benign apps and 0 for malware apps.
+![A graph](./src/images/a_graph.jpg)
+Because of the small dataset and the seemingly interesting column feature, the SVM without and parameter tunings got an 100% accuracy. Though this measurement may not mean much, but it will be interesting to see how the features will turn out to be when the dataset is scaled up.
 
 ## Reference
 
