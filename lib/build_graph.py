@@ -6,7 +6,15 @@ import lib.create_database as cdb
 import pandas as pd
 import numpy as np
 import networkx as nx
+from glob import glob
+import random
 
+def get_smali(smali_path):
+    '''
+    get all filenames in smali_path with .smali
+    input: directory
+    '''
+    return glob('%s/**/*.smali' % smali_path, recursive=True)
 
 def locate_method_blocks(text, blocks):
     '''
@@ -61,7 +69,23 @@ def find_method(line):
 def find_invoke(line):
     return re.search('-\w{5,9}', line).group(0)[1:]
 
+def create_malware_src(path):
+    dirs = os.listdir(path)
+    mal_source.extend([os.path.join(path, folder) for folder in dirs]) 
 
+def find_malware_src(mal_src):
+    mal = os.listdir(mal_src)
+    mal = [file for file in mal if (file[0] != '.')]
+    mal = [os.path.join(mal_src, name) for name in mal]
+    mal_source = list()
+    each_mal = list()
+    for name in mal:
+        create_malware_src(name)
+    for name in mal_source:
+        each_mal.extend(os.listdir(name))
+    random.shuffle(each_mal)
+    return each_mal
+    
 def get_A_info(benign_src, mal_src, num_b, num_m):
     print('get info')
     apk_api = defaultdict(set)
@@ -69,15 +93,16 @@ def get_A_info(benign_src, mal_src, num_b, num_m):
     # get list of APK names
     benign = os.listdir(benign_src)
     benign = [file for file in benign if (file[0] != '.')]
-    benign = benign[:num_b]
-    
+    random.shuffle(benign)
+    apks = benign[:num_b]
+    print(apks)
     all_apis = list()
-    for name in benign:
+    for name in apks:
         apis = list()
         print(name)
         path = os.path.join(benign_src, name)
         # get smali files in each apk
-        smalies = cdb.get_smali(path)
+        smalies = get_smali(path)
         # for all smali files find all api calls
         for s in smalies:
             with open(s) as fh:
@@ -86,18 +111,19 @@ def get_A_info(benign_src, mal_src, num_b, num_m):
         apis = set(apis)
         for api in apis:
             apk_api[name].add(api)
-                
+             
+               
+    print('check malware')
     if(num_m > 0):
-        mal = os.listdir(mal_src)
-        mal = [file for file in mal if (file[0] != '.')]
-        mal = mal[:num_m]
-        
-        for name in mal:
+        each_mal = find_malware_src(mal_src)
+        each_mal = each_mal[:num_m]
+
+        for name in each_mal:
             print(name)
             apis = list()
             path = os.path.join(mal_src, name)
             # get smali files in each apk
-            smalies = cdb.get_smali(path)
+            smalies = get_smali(path)
             # for all smali files find all api calls
             for s in smalies:
                 with open(s) as fh:
@@ -106,27 +132,28 @@ def get_A_info(benign_src, mal_src, num_b, num_m):
             apis = set(apis)
             for api in apis:
                 apk_api[name].add(api)
-        benign.extend(mal)
-        print(benign)
-        return apk_api, benign, all_apis
+            print(name)
+            apks.append(name)
+            
+        return apk_api, apks, all_apis
     
                 
     # create relationship dictionary apk: [api1, api2, ... apiN]
 #     apis = set(apis)
 #     for api in apis:
 #         apk_api[name].add(api)
-    return apk_api, benign, all_apis
+    return apk_api, apks, all_apis
 
 
 def buildA_matrix(benign_src, mal_src, num_b, num_m = 0, **kwargs):
     print('Build A')
     # get a dictionary of the relationships
     a = get_A_info(benign_src, mal_src, num_b, num_m)
-
+    print('got info')
     connection = a[0]
     apks = a[1]
     apis = a[2]
-
+    display(apks)
     # map the apks and apis to a unique index
     apk_index = pd.Series(apks)
     api_index = pd.Series(list(apis))

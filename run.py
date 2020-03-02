@@ -4,7 +4,7 @@ import sys
 import json
 import shutil
 import networkx as nx
-
+import os
 
 # sys.path.insert(0, 'src')  # add library code to path
 from lib.create_database import get_data
@@ -12,6 +12,7 @@ import lib.build_graph as bg
 
 DATA_PARAMS = 'config/data-params.json'
 TEST_PARAMS = 'config/test-params.json'
+CREATE_DATABASE = 'config/create-database.json'
 
 
 def load_params(fp):
@@ -30,14 +31,17 @@ def create_graphs(cfg):
 
 def main(targets):
     # make the clean target
-    # if 'clean' in targets:
-    #     shutil.rmtree('data/temp', ignore_errors=True)
-    #     shutil.rmtree('data/out', ignore_errors=True)
-    #     shutil.rmtree('data/test', ignore_errors=True)
-
+    if 'clean' in targets:
+#         shutil.rmtree('data/', ignore_errors=True)
+#         shutil.rmtree('data/smali', ignore_errors=True)
+#         shutil.rmtree('data/xml', ignore_errors=True)
+        command = 'rm -r ./data'
+        os.popen(command)
+        
     # make the data target
     if 'data' in targets:
-        cfg = load_params(DATA_PARAMS)
+        cfg = load_params(CREATE_DATABASE)
+        print('get %d apps'%cfg['number_of_apps'])
         get_data(**cfg)
 
     # make the process target

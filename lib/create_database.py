@@ -19,14 +19,6 @@ site = requests.get(sitemap)
 soup = BeautifulSoup(site.text)
 
 
-def get_smali(smali_path):
-    '''
-    get all filenames in smali_path with .smali
-    input: directory
-    '''
-    return glob('%s/**/*.smali' % smali_path, recursive=True)
-
-
 def create_database(N=1):
     apps = [a.text for a in soup.find_all('loc')]
     for app in apps[:N]:
@@ -82,7 +74,7 @@ def download_decode(app):
 
     check_dir(data_dest)
     # decode apk
-    command = './apktool d %s/%s.apk -o %s/%s' % (
+    command = './apktool d -r %s/%s.apk -o %s/%s' % (
         apk_dest, name, data_dest, name)
     print('decoding...')
     os.popen(command)
