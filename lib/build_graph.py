@@ -14,6 +14,7 @@ def get_smali(smali_path):
     get all filenames in smali_path with .smali
     input: directory
     '''
+    print('get smali')
     return glob('%s/**/*.smali' % smali_path, recursive=True)
 
 def locate_method_blocks(text, blocks):
@@ -69,7 +70,7 @@ def find_method(line):
 def find_invoke(line):
     return re.search('-\w{5,9}', line).group(0)[1:]
 
-def create_malware_src(path):
+def create_malware_src(path, mal_source):
     dirs = os.listdir(path)
     mal_source.extend([os.path.join(path, folder) for folder in dirs]) 
 
@@ -80,7 +81,7 @@ def find_malware_src(mal_src):
     mal_source = list()
     each_mal = list()
     for name in mal:
-        create_malware_src(name)
+        create_malware_src(name, mal_source)
     for name in mal_source:
         each_mal.extend(os.listdir(name))
     random.shuffle(each_mal)
@@ -95,11 +96,9 @@ def get_A_info(benign_src, mal_src, num_b, num_m):
     benign = [file for file in benign if (file[0] != '.')]
     random.shuffle(benign)
     apks = benign[:num_b]
-    print(apks)
     all_apis = list()
     for name in apks:
         apis = list()
-        print(name)
         path = os.path.join(benign_src, name)
         # get smali files in each apk
         smalies = get_smali(path)
@@ -119,7 +118,6 @@ def get_A_info(benign_src, mal_src, num_b, num_m):
         each_mal = each_mal[:num_m]
 
         for name in each_mal:
-            print(name)
             apis = list()
             path = os.path.join(mal_src, name)
             # get smali files in each apk
@@ -132,92 +130,152 @@ def get_A_info(benign_src, mal_src, num_b, num_m):
             apis = set(apis)
             for api in apis:
                 apk_api[name].add(api)
-            print(name)
             apks.append(name)
             
         return apk_api, apks, all_apis
     
                 
     # create relationship dictionary apk: [api1, api2, ... apiN]
-#     apis = set(apis)
-#     for api in apis:
-#         apk_api[name].add(api)
     return apk_api, apks, all_apis
 
-
-def buildA_matrix(benign_src, mal_src, num_b, num_m = 0, **kwargs):
-    print('Build A')
-    # get a dictionary of the relationships
-    a = get_A_info(benign_src, mal_src, num_b, num_m)
-    print('got info')
-    connection = a[0]
-    apks = a[1]
-    apis = a[2]
-    display(apks)
-    # map the apks and apis to a unique index
-    apk_index = pd.Series(apks)
-    api_index = pd.Series(list(apis))
-    
-    # construct adjacency matrix
-    adjacency = list()
-    for i in (apk_index.index):
-        name = apk_index.iloc[i]
-        adjacency.append([1 if(api_index.iloc[j] in connection[name])
-                          else 0 for j in range(len(api_index))])
-    return np.matrix(adjacency), api_index, apk_index
+class malware_detection(object):
+    def __init__(self, benign_src, mal_src, num_b, num_m, **kwargs):
+        print('get info')
+        self.benign_src = benign_src
+        self.mal_src = mal_src
+        
+        # get list of APK names
+        benign = os.listdir(benign_src)
+        benign = [file for file in benign if (file[0] != '.')]
+        random.shuffle(benign)
+        apks = benign[:num_b]       
 
 
-def build_B(smali_src, number_of_apps, **kwargs):
-    print('Build B')
-    smali = cdb.get_smali(smali_src)
-    B_graph = nx.Graph()
-    same_block = defaultdict(list)
-    for f in smali[:number_of_apps * 4000]:
-        with open(f) as file:
-            blocks = defaultdict(list)
-            # build B
-            locate_method_blocks(file, blocks)
-            for b in blocks:
-                key = f + str(b)
-                apis = []
-                find_api_calls(blocks[b], apis)
-                if (len(apis) >= 2):
-                    same_block[key] = apis
-
-    create_edges(same_block, B_graph)
-    return B_graph
+        if(num_m > 0):
+            print('check malware')
+            each_mal = find_malware_src(mal_src)
+            each_mal = each_mal[:num_m]
+        apks.extend(each_mal)
+        self.apks = apks
 
 
-def build_P(smali_src, number_of_apps, **kwargs):
-    print('Build P')
-    # initalize data
-    smali = cdb.get_smali(smali_src)
+    def buildA_matrix(self):
+        print('Build A')
+        apk_api = defaultdict(set)
+        all_apis = list()
+        
+        for name in self.apks:
+            print(name)
+            apis = list()
+            try:
+                path = os.path.join(self.benign_src, name)
+                # get smali files in each apk
+                smalies = get_smali(path)
+            except:
+                path = os.path.join(self.mal_src, name)
+                # get smali files in each apk
+                smalies = get_smali(path)
+            # for all smali files find all api calls
+            for s in smalies:
+                with open(s) as fh:
+                    find_api_calls(fh, apis) 
+            all_apis.extend(apis)
+            apis = set(apis)
+            for api in apis:
+                apk_api[name].add(api)
+        # get a dictionary of the relationships
+#         a = get_A_info(benign_src, mal_src, num_b, num_m)
+#         print('got info')
+        connection = apk_api
+        apis = all_apis
+        # map the apks and apis to a unique index
+        apk_index = pd.Series(self.apks)
+        api_index = pd.Series(pd.Series(list(apis)).unique())
 
-    P_graph = nx.Graph()
-    packageD = defaultdict(list)
+        print(len(api_index))
 
-    count = 0
-    for f in smali[:number_of_apps * 4000]:
-        with open(f) as file:
-            # build P
-            for line in file:
-                if('invoke-' in line and 'method' not in line):
-                    try:
-                        if(count < 1000):
-                            api = []
-                            find_api_calls([line], api)
-                            package = find_package(line)
-                            packageD[package].append(api[0])
-                            count += 1
-                        else:
+        # construct adjacency matrix
+        adjacency = list()
+        for i in (apk_index.index):
+            name = apk_index.iloc[i]
+            adjacency.append([1 if(api_index.iloc[j] in connection[name])
+                              else 0 for j in range(len(api_index))])
+        return np.matrix(adjacency), api_index, apk_index
 
-                            create_edges(packageD, P_graph)
-                            packageD = defaultdict(list)
-                            count = 0
-                    except:
-                        pass
 
-    return P_graph
+    def build_B(self):
+        print('Build B')
+
+        B_graph = nx.Graph()
+        same_block = defaultdict(list)
+
+        for name in self.apks:
+            apis = list()
+            try:
+                path = os.path.join(self.benign_src, name)
+                # get smali files in each apk
+                smalies = get_smali(path)
+            except:
+                path = os.path.join(self.mal_src, name)
+                # get smali files in each apk
+                smalies = get_smali(path)
+                
+            # for all smali files find all api calls
+            for s in smalies:
+                with open(s) as file:
+                    blocks = defaultdict(list)
+                    # build B
+                    locate_method_blocks(file, blocks)
+                    for b in blocks:
+                        key = s + str(b)
+                        apis = []
+                        find_api_calls(blocks[b], apis)
+                        if (len(apis) >= 2):
+                            same_block[key] = apis
+
+        create_edges(same_block, B_graph)
+        return B_graph
+
+
+    def build_P(self):
+        print('Build P')
+
+        P_graph = nx.Graph()
+        packageD = defaultdict(list)
+
+        count = 0
+        
+        for name in self.apks:
+            apis = list()
+            try:
+                path = os.path.join(self.benign_src, name)
+                # get smali files in each apk
+                smalies = get_smali(path)
+            except:
+                path = os.path.join(self.mal_src, name)
+                # get smali files in each apk
+                smalies = get_smali(path)
+        
+            for f in smalies:
+                with open(f) as file:
+                    # build P
+                    for line in file:
+                        if('invoke-' in line and 'method' not in line):
+                            try:
+                                if(count < 1000):
+                                    api = []
+                                    find_api_calls([line], api)
+                                    package = find_package(line)
+                                    packageD[package].append(api[0])
+                                    count += 1
+                                else:
+
+                                    create_edges(packageD, P_graph)
+                                    packageD = defaultdict(list)
+                                    count = 0
+                            except:
+                                pass
+        return P_graph
 
 
 def buildI(smali_src, number_of_apps, **kwargs):

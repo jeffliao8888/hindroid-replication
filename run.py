@@ -22,11 +22,17 @@ def load_params(fp):
 
 
 def create_graphs(cfg):
-    A, apis, apks = bg.buildA_matrix(**cfg)
-    B = nx.adjacency_matrix(bg.build_B(**cfg), apis.values)
-    P = nx.adjacency_matrix(bg.build_P(**cfg), apis.values)
-    I = nx.adjacency_matrix(bg.buildI(**cfg), apis.values)
-    return A, B, P, I
+    malware = bg.malware_detection(**cfg)
+    A, apis, apks = malware.buildA_matrix()
+    B = nx.adjacency_matrix(malware.build_B(), apis)
+    P = nx.adjacency_matrix(malware.build_P(), apis)
+    
+    
+#     A, apis, apks = bg.buildA_matrix(**cfg)
+#     B = nx.adjacency_matrix(bg.build_B(**cfg), apis.values)
+#     P = nx.adjacency_matrix(bg.build_P(**cfg), apis.values)
+#     I = nx.adjacency_matrix(bg.buildI(**cfg), apis.values)
+    return A, B, P
 
 
 def main(targets):
@@ -49,16 +55,16 @@ def main(targets):
         print('Using params')
         cfg = load_params(DATA_PARAMS)
         print('Build graph')
-        A, B, P, I = create_graphs(cfg)
-        return A, B, P, I
+        A, B, P = create_graphs(cfg)
+        return A, B, P
 
     # make the test-process target
     if 'data-test' in targets:
         print('Using test params')
         cfg = load_params(TEST_PARAMS)
         print('Build graph')
-        A, B, P, I = create_graphs(cfg)
-        return A, B, P, I
+        A, B, P = create_graphs(cfg)
+        return A, B, P#, I
 
 
 if __name__ == '__main__':
