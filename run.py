@@ -5,21 +5,24 @@ import json
 import shutil
 import networkx as nx
 import os
+import numpy as np
 
 # sys.path.insert(0, 'src')  # add library code to path
-from lib.create_database import get_data
-import lib.build_graph as bg
+from src.create_database import get_data
+import src.build_graph as bg
+
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
 
 DATA_PARAMS = 'config/data-params.json'
 TEST_PARAMS = 'config/test-params.json'
 CREATE_DATABASE = 'config/create-database.json'
-
+ENV = 'config/env.json'
 
 def load_params(fp):
     with open(fp) as fh:
         param = json.load(fh)
     return param
-
 
 def create_graphs(cfg):
     malware = bg.malware_detection(**cfg)
@@ -34,6 +37,43 @@ def create_graphs(cfg):
 #     I = nx.adjacency_matrix(bg.buildI(**cfg), apis.values)
     return A, B, P
 
+def AA(a):
+    return a * a.T
+
+def ABA(a, b):
+    return a * b * a.T
+
+def APA(a, p):
+    return a * p * a.T
+
+def APBPA(a, b, p):
+    return a * p * b * p.T * a.T
+
+def classification(X_train, y_train, X_test, y_test, B, P):
+    clf = SVC(kernel = 'precomputed')
+    kernel_train = AA(X_train)
+    clf.fit(kernel_train, y_train)
+    kernel_test = np.dot(X_test, X_train.T)
+    aa = clf.score(kernel_test, y_test)
+
+    clf = SVC(kernel = 'precomputed')
+    kernel_train = ABA(X_train, B)
+    clf.fit(kernel_train, y_train)
+    kernel_test = X_test * B * X_train.T
+    aba = clf.score(kernel_test, y_test)
+
+    clf = SVC(kernel = 'precomputed')
+    kernel_train = X_train * P * X_train.T
+    clf.fit(kernel_train, y_train)
+    kernel_test = X_test * P * X_train.T
+    apa = clf.score(kernel_test, y_test)
+
+    clf = SVC(kernel = 'precomputed')
+    kernel_train = APBPA(X_train, B, P)
+    clf.fit(kernel_train, y_train)
+    kernel_test = X_test * P * B * P.T * X_train.T
+    apbpa = clf.score(kernel_test, y_test)
+    return aa, aba, apa, apbpa
 
 def main(targets):
     # make the clean target
@@ -47,24 +87,74 @@ def main(targets):
     # make the data target
     if 'data' in targets:
         cfg = load_params(CREATE_DATABASE)
-        print('get %d apps'%cfg['number_of_apps'])
+        print('get %d apps'%(cfg['num_b'] + cfg['num_m']))
         get_data(**cfg)
 
     # make the process target
     if 'process' in targets:
-        print('Using params')
+        print('Loading params')
         cfg = load_params(DATA_PARAMS)
+        env = load_params(ENV)
+        outpath = env["output-paths"]
+        print(outpath)
+        
         print('Build graph')
         A, B, P = create_graphs(cfg)
-        return A, B, P
+        print('Create SVM')
+        x = A
+        num_apps = cfg['num_b'] + cfg['num_m']
+        y = [1 if(num<num_apps/2) else 0 for num in range(num_apps)]
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
+        print('classification')
+        aa, aba, apa, apbpa = classification(X_train, y_train, X_test, y_test, B, P)
+        print('making results')
+        results = {
+            'aa': aa,
+            'aba': aba,
+            'apa': apa,
+            'apbpa': apbpa
+        }
+        
+        res = json.dumps(results)
+        
+        f = open("%s/results.json"%outpath, "w")
+        f.write(res)
+        f.close()
+        print('results saved')
+        return 
 
     # make the test-process target
     if 'data-test' in targets:
-        print('Using test params')
+        print('Loading params')
         cfg = load_params(TEST_PARAMS)
+        env = load_params(ENV)
+        outpath = env["output-paths"]
+        print(outpath)
+        
         print('Build graph')
         A, B, P = create_graphs(cfg)
-        return A, B, P#, I
+        print('Create SVM')
+        x = A
+        num_apps = cfg['num_b'] + cfg['num_m']
+        y = [1 if(num<num_apps/2) else 0 for num in range(num_apps)]
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
+        print('classification')
+        aa, aba, apa, apbpa = classification(X_train, y_train, X_test, y_test, B, P)
+        print('making results')
+        results = {
+            'aa': aa,
+            'aba': aba,
+            'apa': apa,
+            'apbpa': apbpa
+        }
+        
+        res = json.dumps(results)
+        
+        f = open("%s/results.json"%outpath, "w")
+        f.write(res)
+        f.close()
+        print('results saved')
+        return 
 
 
 if __name__ == '__main__':

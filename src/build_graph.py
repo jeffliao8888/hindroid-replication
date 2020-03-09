@@ -2,7 +2,7 @@ import re
 import itertools
 from collections import defaultdict
 import os
-import lib.create_database as cdb
+# import lib.create_database as cdb
 import pandas as pd
 import numpy as np
 import networkx as nx
@@ -14,7 +14,7 @@ def get_smali(smali_path):
     get all filenames in smali_path with .smali
     input: directory
     '''
-    print('get smali')
+#     print('get smali')
     return glob('%s/**/*.smali' % smali_path, recursive=True)
 
 def locate_method_blocks(text, blocks):
@@ -44,8 +44,11 @@ def find_api_calls(iterable, var):
     '''
     for i in iterable:
         if('invoke-' in i and 'method' not in i):
-            api_call = re.search('L.+', i).group(0)[1:]
-            var.append(api_call)
+            try:
+                api_call = re.search('L.+', i).group(0)[1:]
+                var.append(api_call)
+            except:
+                pass
 
 
 def create_edges(dic, graph):
@@ -75,6 +78,7 @@ def create_malware_src(path, mal_source):
     mal_source.extend([os.path.join(path, folder) for folder in dirs]) 
 
 def find_malware_src(mal_src):
+    # change /correct malware path -> can't find path -> src/***missing_dir_name***/name of app
     mal = os.listdir(mal_src)
     mal = [file for file in mal if (file[0] != '.')]
     mal = [os.path.join(mal_src, name) for name in mal]
@@ -83,60 +87,64 @@ def find_malware_src(mal_src):
     for name in mal:
         create_malware_src(name, mal_source)
     for name in mal_source:
-        each_mal.extend(os.listdir(name))
+        each_mal.extend([os.path.join(name, malware) for malware in os.listdir(name)])
     random.shuffle(each_mal)
+    print(len(each_mal))
     return each_mal
     
-def get_A_info(benign_src, mal_src, num_b, num_m):
-    print('get info')
-    apk_api = defaultdict(set)
+# def get_A_info(benign_src, mal_src, num_b, num_m):
+#     print('get info')
+#     apk_api = defaultdict(set)
 
-    # get list of APK names
-    benign = os.listdir(benign_src)
-    benign = [file for file in benign if (file[0] != '.')]
-    random.shuffle(benign)
-    apks = benign[:num_b]
-    all_apis = list()
-    for name in apks:
-        apis = list()
-        path = os.path.join(benign_src, name)
-        # get smali files in each apk
-        smalies = get_smali(path)
-        # for all smali files find all api calls
-        for s in smalies:
-            with open(s) as fh:
-                find_api_calls(fh, apis) 
-        all_apis.extend(apis)
-        apis = set(apis)
-        for api in apis:
-            apk_api[name].add(api)
+#     # get list of APK names
+#     benign = os.listdir(benign_src)
+#     benign = [file for file in benign if (file[0] != '.')]
+#     random.shuffle(benign)
+#     apks = benign[:num_b]
+#     all_apis = list()
+#     for name in apks:
+#         apis = list()
+#         path = os.path.join(benign_src, name)
+#         # get smali files in each apk
+#         smalies = get_smali(path)
+#         # for all smali files find all api calls
+#         for s in smalies:
+#             with open(s) as fh:
+#                 find_api_calls(fh, apis) 
+#         all_apis.extend(apis)
+#         apis = set(apis)
+#         for api in apis:
+#             apk_api[name].add(api)
              
                
-    print('check malware')
-    if(num_m > 0):
-        each_mal = find_malware_src(mal_src)
-        each_mal = each_mal[:num_m]
-
-        for name in each_mal:
-            apis = list()
-            path = os.path.join(mal_src, name)
-            # get smali files in each apk
-            smalies = get_smali(path)
-            # for all smali files find all api calls
-            for s in smalies:
-                with open(s) as fh:
-                    find_api_calls(fh, apis)
-            all_apis.extend(apis)
-            apis = set(apis)
-            for api in apis:
-                apk_api[name].add(api)
-            apks.append(name)
+#     print('check malware')
+#     print(num_m)
+#     if(num_m > 0):
+#         print(mun_m)
+#         each_mal = find_malware_src(mal_src)
+#         print(each_mal)
+#         each_mal = each_mal[:num_m]
+#         print(each_mal)
+#         for name in each_mal:
+#             apis = list()
+#             path = os.path.join(mal_src, name)
+#             # get smali files in each apk
+#             smalies = get_smali(path)
+#             # for all smali files find all api calls
+#             for s in smalies:
+#                 with open(s) as fh:
+#                     find_api_calls(fh, apis)
+#             all_apis.extend(apis)
+#             apis = set(apis)
+#             for api in apis:
+#                 apk_api[name].add(api)
+#             apks.append(name)
             
-        return apk_api, apks, all_apis
+#         return apk_api, apks, all_apis
     
                 
-    # create relationship dictionary apk: [api1, api2, ... apiN]
-    return apk_api, apks, all_apis
+#     # create relationship dictionary apk: [api1, api2, ... apiN]
+#     return apk_api, apks, all_apis
 
 class malware_detection(object):
     def __init__(self, benign_src, mal_src, num_b, num_m, **kwargs):
@@ -158,23 +166,28 @@ class malware_detection(object):
         apks.extend(each_mal)
         self.apks = apks
 
-
     def buildA_matrix(self):
         print('Build A')
         apk_api = defaultdict(set)
         all_apis = list()
         
+        print('extract smali')
         for name in self.apks:
-            print(name)
+#             print(re.search('[\w\d\-\_]+$', name).group(0))
             apis = list()
             try:
                 path = os.path.join(self.benign_src, name)
                 # get smali files in each apk
                 smalies = get_smali(path)
+                if(len(smalies) == 0):
+                    path = os.path.join(self.mal_src, name)
+#                     print(path)
+                    smalies = get_smali(path)
             except:
-                path = os.path.join(self.mal_src, name)
-                # get smali files in each apk
-                smalies = get_smali(path)
+                print('except')
+#                 path = os.path.join(self.mal_src, name)
+#                 # get smali files in each apk
+#                 smalies = get_smali(path)
             # for all smali files find all api calls
             for s in smalies:
                 with open(s) as fh:
@@ -186,15 +199,15 @@ class malware_detection(object):
         # get a dictionary of the relationships
 #         a = get_A_info(benign_src, mal_src, num_b, num_m)
 #         print('got info')
+
         connection = apk_api
         apis = all_apis
         # map the apks and apis to a unique index
         apk_index = pd.Series(self.apks)
         api_index = pd.Series(pd.Series(list(apis)).unique())
-
-        print(len(api_index))
-
+        
         # construct adjacency matrix
+        print('build adjacency matrix')
         adjacency = list()
         for i in (apk_index.index):
             name = apk_index.iloc[i]
@@ -208,8 +221,8 @@ class malware_detection(object):
 
         B_graph = nx.Graph()
         same_block = defaultdict(list)
-
         for name in self.apks:
+#             print(re.search('[\w\d\-\_]+$', name).group(0))
             apis = list()
             try:
                 path = os.path.join(self.benign_src, name)
@@ -232,7 +245,7 @@ class malware_detection(object):
                         find_api_calls(blocks[b], apis)
                         if (len(apis) >= 2):
                             same_block[key] = apis
-
+        print('create B graph')
         create_edges(same_block, B_graph)
         return B_graph
 
@@ -246,6 +259,7 @@ class malware_detection(object):
         count = 0
         
         for name in self.apks:
+#             print(re.search('[\w\d\-\_]+$', name).group(0))
             apis = list()
             try:
                 path = os.path.join(self.benign_src, name)
@@ -275,6 +289,7 @@ class malware_detection(object):
                                     count = 0
                             except:
                                 pass
+        print('create P graph')
         return P_graph
 
 

@@ -1,6 +1,6 @@
 {
-    "benign_src": "/home/zjliao/dsc180a/data/smali",
+    "benign_src": "/datasets/home/44/544/zjliao/dsc180a/data/smali",
     "mal_src": "/datasets/dsc180a-wi20-public/Malware/amd_data_smali",
-    "num_b": 2,
-    "num_m": 2
+    "num_b": 100,
+    "num_m": 100
 }
