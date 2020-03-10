@@ -16,7 +16,7 @@ apk_dest = './data/apk'
 xml_dest = './data/xml'
 data_dest = './data/smali'
 site = requests.get(sitemap)
-soup = BeautifulSoup(site.text)
+soup = BeautifulSoup(site.text, 'lxml')
 
 
 def create_database(N=1):

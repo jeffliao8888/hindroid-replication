@@ -1,18 +1,26 @@
 #!/usr/bin/env python
-
 import sys
 import json
 import shutil
 import networkx as nx
-import os
+import os, sys, inspect
 import numpy as np
 
-# sys.path.insert(0, 'src')  # add library code to path
 from src.create_database import get_data
 import src.build_graph as bg
 
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+
+import logging
+# command = 'rm ./debug.log'
+# os.popen(command)
+logger = logging.getLogger('debug')
+hdlr = logging.FileHandler('/datasets/home/home-01/44/544/zjliao/dsc180a/debug.log', mode='w')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr) 
+logger.setLevel(logging.INFO)
 
 DATA_PARAMS = 'config/data-params.json'
 TEST_PARAMS = 'config/test-params.json'
@@ -126,20 +134,26 @@ def main(targets):
     # make the test-process target
     if 'data-test' in targets:
         print('Loading params')
+        logger.info('Load params')
         cfg = load_params(TEST_PARAMS)
         env = load_params(ENV)
         outpath = env["output-paths"]
-        print(outpath)
         
         print('Build graph')
+        logger.info('Build graphs')
         A, B, P = create_graphs(cfg)
+        logger.info(A.shape)
+        
         print('Create SVM')
+        logger.info('Create SVM')
         x = A
         num_apps = cfg['num_b'] + cfg['num_m']
         y = [1 if(num<num_apps/2) else 0 for num in range(num_apps)]
         X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
+        
         print('classification')
         aa, aba, apa, apbpa = classification(X_train, y_train, X_test, y_test, B, P)
+        
         print('making results')
         results = {
             'aa': aa,
@@ -154,6 +168,7 @@ def main(targets):
         f.write(res)
         f.close()
         print('results saved')
+        logger.info('results saved')
         return 
 
 

@@ -2,12 +2,24 @@ import re
 import itertools
 from collections import defaultdict
 import os
-# import lib.create_database as cdb
 import pandas as pd
 import numpy as np
 import networkx as nx
 from glob import glob
 import random
+
+import logging
+logger = logging.getLogger('debug')
+hdlr = logging.FileHandler('/datasets/home/home-01/44/544/zjliao/dsc180a/debug.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr) 
+logger.setLevel(logging.INFO)
+
+DATA_PARAMS = 'config/data-params.json'
+TEST_PARAMS = 'config/test-params.json'
+CREATE_DATABASE = 'config/create-database.json'
+ENV = 'config/env.json'
 
 def get_smali(smali_path):
     '''
@@ -149,6 +161,7 @@ def find_malware_src(mal_src):
 class malware_detection(object):
     def __init__(self, benign_src, mal_src, num_b, num_m, **kwargs):
         print('get info')
+        logger.info('Create malware class')
         self.benign_src = benign_src
         self.mal_src = mal_src
         
@@ -168,6 +181,7 @@ class malware_detection(object):
 
     def buildA_matrix(self):
         print('Build A')
+        logger.info('Build A')
         apk_api = defaultdict(set)
         all_apis = list()
         
@@ -208,6 +222,7 @@ class malware_detection(object):
         
         # construct adjacency matrix
         print('build adjacency matrix')
+        logger.info('Construct A matrix')
         adjacency = list()
         for i in (apk_index.index):
             name = apk_index.iloc[i]
@@ -218,7 +233,7 @@ class malware_detection(object):
 
     def build_B(self):
         print('Build B')
-
+        logger.info('Build B')
         B_graph = nx.Graph()
         same_block = defaultdict(list)
         for name in self.apks:
@@ -246,13 +261,14 @@ class malware_detection(object):
                         if (len(apis) >= 2):
                             same_block[key] = apis
         print('create B graph')
+        logger.info('Build B Graph')
         create_edges(same_block, B_graph)
         return B_graph
 
 
     def build_P(self):
         print('Build P')
-
+        logger.info('Build P')
         P_graph = nx.Graph()
         packageD = defaultdict(list)
 
