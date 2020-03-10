@@ -26,7 +26,6 @@ def get_smali(smali_path):
     get all filenames in smali_path with .smali
     input: directory
     '''
-#     print('get smali')
     return glob('%s/**/*.smali' % smali_path, recursive=True)
 
 def locate_method_blocks(text, blocks):
@@ -103,60 +102,6 @@ def find_malware_src(mal_src):
     random.shuffle(each_mal)
     print(len(each_mal))
     return each_mal
-    
-# def get_A_info(benign_src, mal_src, num_b, num_m):
-#     print('get info')
-#     apk_api = defaultdict(set)
-
-#     # get list of APK names
-#     benign = os.listdir(benign_src)
-#     benign = [file for file in benign if (file[0] != '.')]
-#     random.shuffle(benign)
-#     apks = benign[:num_b]
-#     all_apis = list()
-#     for name in apks:
-#         apis = list()
-#         path = os.path.join(benign_src, name)
-#         # get smali files in each apk
-#         smalies = get_smali(path)
-#         # for all smali files find all api calls
-#         for s in smalies:
-#             with open(s) as fh:
-#                 find_api_calls(fh, apis) 
-#         all_apis.extend(apis)
-#         apis = set(apis)
-#         for api in apis:
-#             apk_api[name].add(api)
-             
-               
-#     print('check malware')
-#     print(num_m)
-#     if(num_m > 0):
-#         print(mun_m)
-#         each_mal = find_malware_src(mal_src)
-#         print(each_mal)
-#         each_mal = each_mal[:num_m]
-#         print(each_mal)
-#         for name in each_mal:
-#             apis = list()
-#             path = os.path.join(mal_src, name)
-#             # get smali files in each apk
-#             smalies = get_smali(path)
-#             # for all smali files find all api calls
-#             for s in smalies:
-#                 with open(s) as fh:
-#                     find_api_calls(fh, apis)
-#             all_apis.extend(apis)
-#             apis = set(apis)
-#             for api in apis:
-#                 apk_api[name].add(api)
-#             apks.append(name)
-            
-#         return apk_api, apks, all_apis
-    
-                
-#     # create relationship dictionary apk: [api1, api2, ... apiN]
-#     return apk_api, apks, all_apis
 
 class malware_detection(object):
     def __init__(self, benign_src, mal_src, num_b, num_m, **kwargs):
@@ -187,7 +132,7 @@ class malware_detection(object):
         
         print('extract smali')
         for name in self.apks:
-#             print(re.search('[\w\d\-\_]+$', name).group(0))
+            logger.info(re.search('[\w\d\-\_]+$', name).group(0))
             apis = list()
             try:
                 path = os.path.join(self.benign_src, name)

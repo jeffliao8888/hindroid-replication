@@ -83,6 +83,38 @@ def classification(X_train, y_train, X_test, y_test, B, P):
     apbpa = clf.score(kernel_test, y_test)
     return aa, aba, apa, apbpa
 
+def run_project(cfg, outpath):
+    print('Build graph')
+    logger.info('Build graphs')
+    A, B, P = create_graphs(cfg)
+    logger.info(A.shape)
+
+    print('Create SVM')
+    logger.info('Create SVM')
+    x = A
+    num_apps = cfg['num_b'] + cfg['num_m']
+    y = [1 if(num<num_apps/2) else 0 for num in range(num_apps)]
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
+
+    print('classification')
+    aa, aba, apa, apbpa = classification(X_train, y_train, X_test, y_test, B, P)
+
+    print('making results')
+    results = {
+        'aa': aa,
+        'aba': aba,
+        'apa': apa,
+        'apbpa': apbpa
+    }
+
+    res = json.dumps(results)
+
+    f = open("%s/results.json"%outpath, "w")
+    f.write(res)
+    f.close()
+    print('results saved')
+    logger.info('results saved')
+
 def main(targets):
     # make the clean target
     if 'clean' in targets:
@@ -102,40 +134,11 @@ def main(targets):
     if 'process' in targets:
         print('Loading params')
         logger.info('Load params')
-        cfg = load_params(TEST_PARAMS)
+        cfg = load_params(DATA_PARAMS)
         env = load_params(ENV)
         outpath = env["output-paths"]
         
-        print('Build graph')
-        logger.info('Build graphs')
-        A, B, P = create_graphs(cfg)
-        logger.info(A.shape)
-        
-        print('Create SVM')
-        logger.info('Create SVM')
-        x = A
-        num_apps = cfg['num_b'] + cfg['num_m']
-        y = [1 if(num<num_apps/2) else 0 for num in range(num_apps)]
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
-        
-        print('classification')
-        aa, aba, apa, apbpa = classification(X_train, y_train, X_test, y_test, B, P)
-        
-        print('making results')
-        results = {
-            'aa': aa,
-            'aba': aba,
-            'apa': apa,
-            'apbpa': apbpa
-        }
-        
-        res = json.dumps(results)
-        
-        f = open("%s/results.json"%outpath, "w")
-        f.write(res)
-        f.close()
-        print('results saved')
-        logger.info('results saved')
+        run_project(cfg, outpath)
         return 
 
 
@@ -147,36 +150,7 @@ def main(targets):
         env = load_params(ENV)
         outpath = env["output-paths"]
         
-        print('Build graph')
-        logger.info('Build graphs')
-        A, B, P = create_graphs(cfg)
-        logger.info(A.shape)
-        
-        print('Create SVM')
-        logger.info('Create SVM')
-        x = A
-        num_apps = cfg['num_b'] + cfg['num_m']
-        y = [1 if(num<num_apps/2) else 0 for num in range(num_apps)]
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
-        
-        print('classification')
-        aa, aba, apa, apbpa = classification(X_train, y_train, X_test, y_test, B, P)
-        
-        print('making results')
-        results = {
-            'aa': aa,
-            'aba': aba,
-            'apa': apa,
-            'apbpa': apbpa
-        }
-        
-        res = json.dumps(results)
-        
-        f = open("%s/results.json"%outpath, "w")
-        f.write(res)
-        f.close()
-        print('results saved')
-        logger.info('results saved')
+        run_project(cfg, outpath)
         return 
 
 
