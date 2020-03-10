@@ -102,6 +102,7 @@ def main(targets):
     if 'process' in targets:
         print('Loading params')
         logger.info('Load params')
+        cfg = load_params(TEST_PARAMS)
         env = load_params(ENV)
         outpath = env["output-paths"]
         
@@ -136,6 +137,7 @@ def main(targets):
         print('results saved')
         logger.info('results saved')
         return 
+
 
     # make the test-process target
     if 'data-test' in targets:
