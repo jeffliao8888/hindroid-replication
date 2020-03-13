@@ -171,7 +171,7 @@ For example,
 ![HinDroid results](./src/images/hindroid_res.png) [2]
 The above table is a few results obtained by HinDroid's various metapaths.  
 For this replication, I will test my results using the different kernels: AA<sup>T</sup>,  ABA<sup>T</sup>, APA<sup>T</sup>, APBP<sup>T</sup>A<sup>T</sup>. The accuracy for HinDroid is 94.4%, 95%, 94.2%, 94.2% respectively.  
-In my replication, I also created the same matrices and used sklearn's SVM to make predictions. I ran my model from scratch two times to see whether the results were consistant. For each test, I had X amount of benign apps and X amount of malware. Out of these, 80% were training data and 20% were test data. For the first test, my total dataset contains 100 benign apps and 100 malware. The second test contained a total of 250 benign apps and 250 malware. The results I got are shown in the table below.
+In my replication, I also created the same matrices and used sklearn's SVM to make predictions. I ran my model from scratch two times to see whether the results were consistant. For each test, I had X amount of benign apps and X amount of malware. Out of these, 80% were training data and 30% were test data. For the first test, my total dataset contains 100 benign apps and 100 malware. The second test contained a total of 250 benign apps and 250 malware. The results I got are shown in the table below.
 
 |        | Accuracy  |           |
 |--------|-----------|-----------|
