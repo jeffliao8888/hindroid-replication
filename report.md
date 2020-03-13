@@ -21,7 +21,7 @@ The data that will be used are:
 
 **Why is the data is appropriate to address the problem?**
 
-- The resulting smali code that is generated using APKTool is the data that is being used to analysis. The data is valid because smali code is the "intermediate but interpreted code between Java and DalvikVM." This means that through the smali code we will be able to observe what an application is doing. From these observations, we will be able to create relationships and detect anomalies. 
+- The resulting smali code that is generated using APKTool is the data that is being used to analysis. The data is valid because smali code is the "intermediate but interpreted code between Java and DalvikVM." This means that through the smali code we will be able to observe what an application is doing. From these observations, we will be able to create relationships and detect anomalies.
 
 **What are the potential shortcomings of the data for addressing the problem?**
 
@@ -74,11 +74,20 @@ There doesn't seem to have any privacy issues because we are mainly just reverse
 - Downloaded xml.gz files are saved in ./xml
 - Downloaded apk are saved in ./apk
 - Downloaded smali files are saved in ./data
+- Malware is stored in DSMLP at "/datasets/dsc180a-wi20-public/Malware/amd_data_smali"
 
-**Configuration file so far**
-{
-    "size": number of apps in training set,
-    "type": type of apps in training set
+**Configuration files**  
+___-params.json  
+{  
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"benign_src": "/datasets/home/44/544/zjliao/dsc180a/data/smali",  
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mal_src": "/datasets/dsc180a-wi20-public/Malware/amd_data_smali",  
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num_b": X,  
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num_m": Y  
+}  
+env.json  
+{  
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"docker-image": "",  
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"output-paths": "/datasets/home/44/544/zjliao/dsc180a/"  
 }
 
 ## EDA on Apps and Inital Small Scale Classification Trial
@@ -162,7 +171,17 @@ For example,
 ![HinDroid results](./src/images/hindroid_res.png) [2]
 The above table is a few results obtained by HinDroid's various metapaths.  
 For this replication, I will test my results using the different kernels: AA<sup>T</sup>,  ABA<sup>T</sup>, APA<sup>T</sup>, APBP<sup>T</sup>A<sup>T</sup>. The accuracy for HinDroid is 94.4%, 95%, 94.2%, 94.2% respectively.  
-In my replication, I also created the same matrices and used sklearn's SVM to make predictions. I ran my model from scratch two times to see whether the results were consistant. My total dataset contains 100 benign apps and 100 malware. The results I got for were: 95%, 66.66%, 90%, and 66.66% accuracy respectively.
+In my replication, I also created the same matrices and used sklearn's SVM to make predictions. I ran my model from scratch two times to see whether the results were consistant. For each test, I had X amount of benign apps and X amount of malware. Out of these, 80% were training data and 20% were test data. For the first test, my total dataset contains 100 benign apps and 100 malware. The second test contained a total of 250 benign apps and 250 malware. The results I got are shown in the table below.
+
+|        | Accuracy  |           |
+|--------|-----------|-----------|
+| Method | 1st trail | 2nd trail |
+| AA<sup>T</sup>     | 95%       | 94%       |
+| ABA<sup>T</sup>    | 66.66%    | 91.3%     |
+| APA<sup>T</sup>    | 90%       | 92%       |
+| APBP<sup>T</sup>A<sup>T</sup>  | 66.66%    | 89.33%    |
+
+When running the 1st trial the total amount of unique APIs was around 1 million. When running the 2nd trial, there was 1.7 million unique APIs. Because of such a large number of APIs, it took around 9 hours for the 2nd trial to finish constructing the different matrices and train the SVM model.
 
 ## Conclusion
 
