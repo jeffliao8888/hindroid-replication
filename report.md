@@ -107,9 +107,14 @@ For the classification trial stage, I used only a total dataset of 9 apps, 5 ben
 ![A graph](./src/images/a_graph.jpg)
 Because of the small dataset and the seemingly interesting column feature, the SVM without and parameter tunings got an 100% accuracy. Though this measurement may not mean much, but it will be interesting to see how the features will turn out to be when the dataset is scaled up.
 
+## Baseline Classification  
+
+I made my baseline classification with the assumption that malware and bengign apps may have a different set of APIs that it calls.
+Therefore, I borrowed the A graph as an idea and used that matrix as my set of features. The reason is that the A graph gives us information about what APIs do each APK call. Using this feature, I am able to plug this matrix in to a SVM and get a prediction. Using this method, my training set was 70%, while the test set was 30%. Using this logic, I got an accuracy rate of 62.5%.
+
 ## HinDroid's Approach
 
-HinDroid creates metapaths as custom kernels to feed into SVM classifiers. Four matricies are made, A, B, P, and I. The A matrix tells us what APIs are called for each APK. So its rows are APKs and its columns are APIs. The B matrix are whether different APIs were called in the same block. The P matrix are whether different APIs are in the same package. The I matrix are whether different APIs have the same invokation method. B, P, and I all have APIs as rows and columns.  
+HinDroid creates metapaths as custom kernels to feed into SVM classifiers. Four matricies are made, A, B, P, and I. The A matrix tells us what APIs are called for each APK. So its rows are APKs and its columns are APIs. The B matrix are whether different APIs were called in the same block. The P matrix are whether different APIs are in the same package. The I matrix are whether different APIs have the same invokation method. B, P, and I all have APIs as rows and columns. 
 
 HinDroid then uses these matrices to build a metapath. For example, AA<sup>T</sup>, ABA<sup>T</sup>,APA<sup>T</sup>.
 
@@ -171,7 +176,7 @@ For example,
 ![HinDroid results](./src/images/hindroid_res.png) [2]
 The above table is a few results obtained by HinDroid's various metapaths.  
 For this replication, I will test my results using the different kernels: AA<sup>T</sup>,  ABA<sup>T</sup>, APA<sup>T</sup>, APBP<sup>T</sup>A<sup>T</sup>. The accuracy for HinDroid is 94.4%, 95%, 94.2%, 94.2% respectively.  
-In my replication, I also created the same matrices and used sklearn's SVM to make predictions. I ran my model from scratch two times to see whether the results were consistant. For each test, I had X amount of benign apps and X amount of malware. Out of these, 80% were training data and 30% were test data. For the first test, my total dataset contains 100 benign apps and 100 malware. The second test contained a total of 250 benign apps and 250 malware. The results I got are shown in the table below.
+In my replication, I also created the same matrices and used sklearn's SVM to make predictions. I ran my model two times with each time changing the total number of apps used. For each test, I had X amount of benign apps and X amount of malware. Out of these, 70% were training data and 30% were test data. For the first test, my total dataset contains 100 benign apps and 100 malware. The second test contained a total of 250 benign apps and 250 malware. The results I got are shown in the table below.
 
 |        | Accuracy  |           |
 |--------|-----------|-----------|
@@ -184,6 +189,8 @@ In my replication, I also created the same matrices and used sklearn's SVM to ma
 When running the 1st trial the total amount of unique APIs was around 1 million. When running the 2nd trial, there was 1.7 million unique APIs. Because of such a large number of APIs, it took around 9 hours for the 2nd trial to finish constructing the different matrices and train the SVM model.
 
 ## Conclusion
+
+Using the method proposed by HinDroid definitely improved the accuracy rate that I got compared with the baseline. The notion of combinine different paths to create a metapath does indeed give us information about how different APKs are linked together. However, sometimes it does seem that why this method work can be some kind of a mystery. Something interesting, though, is that there needs be be a larger sample of apps that are used in the training stage in order to give a more consistant result. Take a look at trial 1 and trail 2 for example. The accuracy scores for trail 1 varies quite a bit between different metapaths. However, in trail 2, the accuracy score is much more stable. They are all around 90%. It seems that using this method, there must be a large dataset. From my project, it seems like that there should be at least 500 apps. I did not investigate whether the type of apps matter.
 
 ## Reference
 
