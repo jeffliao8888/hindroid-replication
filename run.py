@@ -24,7 +24,7 @@ logger.setLevel(logging.INFO)
 
 DATA_PARAMS = 'config/data-params.json'
 TEST_PARAMS = 'config/test-params.json'
-CREATE_DATABASE = 'config/create-database.json'
+TEST_PROJECT = 'config/test-project.json'
 ENV = 'config/env.json'
 
 def load_params(fp):
@@ -126,7 +126,7 @@ def main(targets):
         
     # make the data target
     if 'data' in targets:
-        cfg = load_params(CREATE_DATABASE)
+        cfg = load_params(DATA_PARAMS)
         print('get %d apps'%(cfg['num_b'] + cfg['num_m']))
         get_data(**cfg)
 
@@ -152,6 +152,25 @@ def main(targets):
         
         run_project(cfg, outpath)
         return 
+    
+    if 'test-project' in targets:
+        # remove data
+        command = 'rm -r ./data'
+        os.popen(command)
+        logger.info('cleaning')
+        
+        print('Loading params')
+        logger.info('Load params')
+        cfg = load_params(TEST_PROJECT)
+        env = load_params(ENV)
+        outpath = env["output-paths"]
+        
+        logger.info('get apps')
+        print('get %d apps'%(cfg['number_of_apps']))
+#         get_data(**cfg)
+        
+#         run_project(cfg, outpath)
+#         return 
 
 
 if __name__ == '__main__':
