@@ -1,7 +1,6 @@
 {
-    "benign_src": "/datasets/home/44/544/zjliao/dsc180a/data/smali",
+    "benign_src": "./data/smali",
     "mal_src": "/datasets/dsc180a-wi20-public/Malware/amd_data_smali",
     "num_b": 5,
-    "num_m": 5,
-    "number_of_apps": 10
+    "num_m": 5
 }

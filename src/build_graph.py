@@ -115,7 +115,7 @@ class malware_detection(object):
         benign = [file for file in benign if (file[0] != '.')]
         random.shuffle(benign)
         apks = benign[:num_b]       
-
+        logger.info(apks)
 
         if(num_m > 0):
             print('check malware')
@@ -123,6 +123,7 @@ class malware_detection(object):
             each_mal = each_mal[:num_m]
         apks.extend(each_mal)
         self.apks = apks
+        logger.info(self.apks)
 
     def buildA_matrix(self):
         print('Build A')
@@ -148,9 +149,13 @@ class malware_detection(object):
 #                 # get smali files in each apk
 #                 smalies = get_smali(path)
             # for all smali files find all api calls
+            logger.info(path)
             for s in smalies:
-                with open(s) as fh:
-                    find_api_calls(fh, apis) 
+                try:
+                    with open(s) as fh:
+                        find_api_calls(fh, apis)
+                except:
+                    pass
             all_apis.extend(apis)
             apis = set(apis)
             for api in apis:
