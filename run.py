@@ -138,7 +138,7 @@ def main(targets):
         cfg = load_params(DATA_PARAMS)
         env = load_params(ENV)
         outpath = env["output-paths"]
-        
+        logger.info('RUN PROJECT')
         run_project(cfg, outpath)
         return 
 
@@ -150,7 +150,7 @@ def main(targets):
         cfg = load_params(TEST_PARAMS)
         env = load_params(ENV)
         outpath = env["output-paths"]
-        
+        logger.info('RUN PROJECT')˜
         run_project(cfg, outpath)
         return 
     
