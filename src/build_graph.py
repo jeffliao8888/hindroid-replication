@@ -100,7 +100,7 @@ def find_malware_src(mal_src):
     for name in mal_source:
         each_mal.extend([os.path.join(name, malware) for malware in os.listdir(name)])
     random.shuffle(each_mal)
-    print(len(each_mal))
+#     print(len(each_mal))
     return each_mal
 
 class malware_detection(object):

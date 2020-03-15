@@ -47,7 +47,7 @@ def download(url, dest, name, file_type):
 
 def create_soup(url):
     resp = requests.get(url)
-    return BeautifulSoup(resp.text)
+    return BeautifulSoup(resp.text, 'lxml')
 
 
 def download_decode(app):
@@ -80,7 +80,8 @@ def download_decode(app):
     os.popen(command)
 
 
-def get_data(number_of_apps, **kwargs):
+def get_data(num_b, **kwargs):
+    print('getting %d apps'%num_b)
     site = create_soup(sitemap)
     # Extract app links
     apps = [a.text for a in site.find_all('loc')][5:]
@@ -88,7 +89,7 @@ def get_data(number_of_apps, **kwargs):
     count = 0
     check_dir('./data')
     for app in apps:
-        if(count >= number_of_apps):
+        if(count >= num_b):
             break
         try:
             download_decode(app)

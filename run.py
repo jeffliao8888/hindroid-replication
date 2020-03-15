@@ -16,7 +16,7 @@ import logging
 # command = 'rm ./debug.log'
 # os.popen(command)
 logger = logging.getLogger('debug')
-hdlr = logging.FileHandler('/datasets/home/home-01/44/544/zjliao/dsc180a/debug.log', mode='w')
+hdlr = logging.FileHandler('./debug.log', mode='w')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr) 
@@ -121,13 +121,14 @@ def main(targets):
 #         shutil.rmtree('data/', ignore_errors=True)
 #         shutil.rmtree('data/smali', ignore_errors=True)
 #         shutil.rmtree('data/xml', ignore_errors=True)
-        command = 'rm -r ./data'
+        command = 'rm -rf ./data'
         os.popen(command)
         
     # make the data target
     if 'data' in targets:
         cfg = load_params(DATA_PARAMS)
-        print('get %d apps'%(cfg['num_b'] + cfg['num_m']))
+        logger.info('get apps')
+        print('get %d benign apps'%(cfg['num_b']))
         get_data(**cfg)
 
     # make the process target
@@ -154,23 +155,34 @@ def main(targets):
         return 
     
     if 'test-project' in targets:
-        # remove data
-        command = 'rm -r ./data'
-        os.popen(command)
-        logger.info('cleaning')
-        
         print('Loading params')
         logger.info('Load params')
         cfg = load_params(TEST_PROJECT)
         env = load_params(ENV)
         outpath = env["output-paths"]
+
+        # check data dir
+        logger.info('Check dir: %r'%(os.path.exists('./data')))
+        if(os.path.exists('./data') == True):
+            # remove data
+            print('clean data')
+            command = 'rm -rf ./data'
+            os.popen(command)
+            logger.info('cleaning')
+            
+            # get data
+            logger.info('get apps')
+            print('get %d benign apps'%(cfg['num_b']))
+            get_data(**cfg)
+        else:
+            # get data
+            logger.info('get apps')
+            print('get %d benign apps'%(cfg['num_b']))
+            get_data(**cfg)
         
-        logger.info('get apps')
-        print('get %d apps'%(cfg['number_of_apps']))
-#         get_data(**cfg)
-        
-#         run_project(cfg, outpath)
-#         return 
+        logger.info('RUN PROJECT')
+        run_project(cfg, outpath)
+        return 
 
 
 if __name__ == '__main__':
