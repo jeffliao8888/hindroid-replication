@@ -103,14 +103,13 @@ Here we take a look at how an app looks like. The nodes in the image below are c
 ![Candy Crush](./src/images/candy_crush_relations.png)
 From this descriptive image, we can see that there is a class that has a ton of connections, and this would be the Object class.
 
+## Baseline Classification
+
 For the classification trial stage, I used only a total dataset of 9 apps, 5 benign and 4 malware. The small dataset is mostly for testing whether the code works properly. 1 benign and 1 malware was held out as the test set. This inital trial also only constructed to A graph and used SVM from sklearn. One interesting characteristic of from the dataset was that the first column was all 1 for the benign apps and 0 for malware apps.
 ![A graph](./src/images/a_graph.jpg)
 Because of the small dataset and the seemingly interesting column feature, the SVM without and parameter tunings got an 100% accuracy. Though this measurement may not mean much, but it will be interesting to see how the features will turn out to be when the dataset is scaled up.
 
-## Baseline Classification  
-
-I made my baseline classification with the assumption that malware and bengign apps may have a different set of APIs that it calls.
-Therefore, I borrowed the A graph as an idea and used that matrix as my set of features. The reason is that the A graph gives us information about what APIs do each APK call. Using this feature, I am able to plug this matrix in to a SVM and get a prediction. Using this method, my training set was 70%, while the test set was 30%. Using this logic, I got an accuracy rate of 62.5%.
+Below is an expansion on the inital setup. For this baseline, the A graph was constructed using a dataset of 20 benign apps and 20 malware. I made my baseline classification with the assumption that malware and bengign apps may have a different set of APIs that it calls. Therefore, I borrowed the A graph as an idea and used that matrix as my set of features. The reason is that the A graph gives us information about what APIs do each APK call. Using this feature, I am able to plug this matrix in to a SVM and get a prediction. Using this method, my training set was 70%, while the test set was 30%. Using this logic, I got an accuracy rate of 62.5%.
 
 ## HinDroid's Approach
 
