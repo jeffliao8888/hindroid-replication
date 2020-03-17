@@ -81,7 +81,7 @@ def download_decode(app):
 
 
 def get_data(num_b, **kwargs):
-    print('getting %d apps'%num_b)
+    print('getting %d+2 apps as buffer'%num_b)
     site = create_soup(sitemap)
     # Extract app links
     apps = [a.text for a in site.find_all('loc')][5:]
@@ -89,7 +89,7 @@ def get_data(num_b, **kwargs):
     count = 0
     check_dir('./data')
     for app in apps:
-        if(count >= num_b):
+        if(count >= num_b+2):
             break
         try:
             download_decode(app)
